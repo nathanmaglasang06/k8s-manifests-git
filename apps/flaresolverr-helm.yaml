@@ -1,0 +1,22 @@
+controllers:
+  main:
+    pod:
+      nodeSelector:
+        kubernetes.io/hostname: g3
+    containers:
+      main:
+        image:
+          repository: ghcr.io/flaresolverr/flaresolverr
+          tag: latest
+        env:
+          TZ: "Australia/Sydney"
+          LOG_LEVEL: "info"
+        resources:
+          requests: { cpu: 300m, memory: 1Gi }
+          limits: { cpu: 1500m, memory: 3Gi }
+
+service:
+  main:
+    ports:
+      main:
+        port: 8191

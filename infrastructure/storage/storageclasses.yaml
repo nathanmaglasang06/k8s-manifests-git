@@ -1,0 +1,27 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-cluster
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: 192.168.0.5
+  share: /volume/a9c17917-c5c5-436a-abcc-77081270b2b6/.srv/.unifi-drive/cluster/.data
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+mountOptions:
+  - nfsvers=3
+  - nolock
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-cluster-media
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: 192.168.0.5
+  share: /volume/a9c17917-c5c5-436a-abcc-77081270b2b6/.srv/.unifi-drive/cluster_media/.data
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+mountOptions:
+  - nfsvers=3
+  - nolock

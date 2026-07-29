@@ -1,0 +1,49 @@
+controllers:
+  main:
+    pod:
+      nodeSelector:
+        kubernetes.io/hostname: g3
+    containers:
+      main:
+        image:
+          repository: lscr.io/linuxserver/radarr
+          tag: latest
+        env:
+          PUID: "977"
+          PGID: "988"
+          TZ: "Australia/Sydney"
+        resources:
+          requests: { cpu: 500m, memory: 512Mi }
+          limits: { cpu: 1500m, memory: 2Gi }
+
+service:
+  main:
+    ports:
+      main:
+        port: 7878
+
+ingress:
+  main:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: radarr.home.lab
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: main
+              port: main
+
+persistence:
+  config:
+    enabled: true
+    type: hostPath
+    hostPath: /var/lib/media-config/radarr
+    globalMounts:
+      - path: /config
+  media:
+    enabled: true
+    existingClaim: media-data
+    globalMounts:
+      - path: /data

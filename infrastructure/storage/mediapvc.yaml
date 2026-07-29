@@ -1,0 +1,12 @@
+# media-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-data
+  namespace: media
+spec:
+  accessModes: ["ReadWriteMany"]
+  storageClassName: nfs-cluster-media
+  resources:
+    requests:
+      storage: 4Ti   # NFS-backed, size is nominal not enforced
