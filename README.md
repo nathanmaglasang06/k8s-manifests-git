@@ -71,101 +71,93 @@ Two NFS-backed StorageClasses are defined in `infrastructure/storage/storageclas
 
 ---
 
-## Guide: Adding a UNAS Pro share as Kubernetes persistent storage
+## Guide: Adding UNAS Pro as Kubernetes persistent storage
 
-This is the pattern already used for `nfs-cluster` / `nfs-cluster-media` above — a Ubiquiti **UNAS Pro** exposing an NFS share (via UniFi Drive) that Kubernetes consumes through `csi-driver-nfs`. Use this if you're adding a *new* share/StorageClass, or setting this up on a fresh cluster.
+The UNAS Pro (`192.168.0.5`) is already the cluster's NFS backend — `infrastructure/storage/storageclasses.yaml` and `infrastructure/storage/mediapvc.yaml` are the working example, and Jellyfin, Radarr, Sonarr, and qBittorrent already consume it. This section documents that existing setup and how to extend it.
 
-### 1. Create and expose the share on the UNAS Pro
+### How storage flows, end to end
 
-1. In the UniFi OS console for the UNAS Pro, go to **UniFi Drive** and create (or pick) a volume/folder to export, e.g. a `cluster` or `cluster_media` folder.
-2. Enable **NFS** access for that share (UniFi Drive → share settings → Network Shares → NFS). Note the exported path shown there — it will look like:
-   `/volume/<volume-uuid>/.srv/.unifi-drive/<share-name>/.data`
-3. Under the NFS export settings, allow access from your cluster's node subnet (e.g. `192.168.0.0/24`), and set permissions so the CSI driver's mount UID/GID (or `nobody`/`no_root_squash`, depending on how strict you want to be) can read/write.
-4. Note the UNAS Pro's LAN IP (in this repo: `192.168.0.5`) — that's the NFS `server` value.
-
-> UNAS Pro NFS defaults to NFSv3-style behavior for these UniFi Drive exports; the existing StorageClasses here use `mountOptions: [nfsvers=3, nolock]` because of this. If you enable NFSv4 on a share, drop those options.
-
-### 2. Install `csi-driver-nfs` on the cluster
-
-```bash
-helm repo add csi-driver-nfs https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
-helm repo update
-helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs \
-  --namespace kube-system \
-  --set kubeletDir=/var/lib/kubelet
+```
+UNAS Pro (192.168.0.5), NFS export
+  └─ StorageClass (nfs.csi.k8s.io provisioner)  →  infrastructure/storage/storageclasses.yaml
+       └─ PersistentVolumeClaim (media-data)     →  infrastructure/storage/mediapvc.yaml
+            └─ existingClaim in app Helm values   →  apps/jellyfin-values.yaml, radarr-helm.yaml,
+                                                       sonarr-helm.yaml, qbittorent-helm.yaml
 ```
 
-Notes for Talos:
-- Talos ships with in-kernel NFS client support, so no extra system extension is normally required just to *mount* NFS from pods.
-- `kubeletDir` defaults to `/var/lib/kubelet` on most distros; Talos also uses this path, but double-check on your Talos version/config if the CSI node pods fail to start.
-- Confirm the driver is healthy before moving on: `kubectl -n kube-system get pods -l app=csi-nfs-node`.
-
-### 3. Define a StorageClass pointing at the UNAS Pro share
-
-Add a new StorageClass (or reuse the pattern in `infrastructure/storage/storageclasses.yaml`):
+**1. StorageClasses** (`infrastructure/storage/storageclasses.yaml`) — both provisioned by `nfs.csi.k8s.io` against the same UNAS Pro server, different shares:
 
 ```yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: nfs-<your-share-name>
+  name: nfs-cluster-media
 provisioner: nfs.csi.k8s.io
 parameters:
-  server: 192.168.0.5                                   # UNAS Pro LAN IP
-  share: /volume/<volume-uuid>/.srv/.unifi-drive/<share-name>/.data
-reclaimPolicy: Retain     # or Delete — Retain is safer for media/important data
+  server: 192.168.0.5
+  share: /volume/a9c17917-c5c5-436a-abcc-77081270b2b6/.srv/.unifi-drive/cluster_media/.data
+reclaimPolicy: Retain
 volumeBindingMode: Immediate
 mountOptions:
   - nfsvers=3
   - nolock
 ```
 
-Apply it:
+The sibling `nfs-cluster` StorageClass in the same file points at a different share (`.../cluster/.data`) and uses `reclaimPolicy: Delete` instead — that's the general-purpose class, `nfs-cluster-media` is dedicated to media so it's set to `Retain` (deleting the PVC won't delete the files on the NAS).
 
-```bash
-kubectl apply -f infrastructure/storage/storageclasses.yaml
-```
-
-### 4. Claim a volume
+**2. The PVC** (`infrastructure/storage/mediapvc.yaml`) claims a `ReadWriteMany` volume from `nfs-cluster-media`:
 
 ```yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: <claim-name>
-  namespace: <namespace>
+  name: media-data
+  namespace: media
 spec:
-  accessModes: ["ReadWriteMany"]   # NFS supports RWX, useful for shared app data
-  storageClassName: nfs-<your-share-name>
+  accessModes: ["ReadWriteMany"]
+  storageClassName: nfs-cluster-media
   resources:
     requests:
-      storage: 100Gi                # nominal — NFS doesn't enforce quotas
+      storage: 4Ti   # NFS-backed, size is nominal not enforced
 ```
 
-### 5. Mount it in an app
-
-For `app-template`-based Helm values (matching the style used in `apps/*.yaml`):
+**3. Apps consume it** by referencing the same `existingClaim` — this is what lets Jellyfin/Radarr/Sonarr/qBittorrent all see the same files for imports/hardlinks. From `apps/jellyfin-values.yaml` (identical block in `radarr-helm.yaml`, `sonarr-helm.yaml`, `qbittorent-helm.yaml`):
 
 ```yaml
 persistence:
-  mydata:
+  media:
     enabled: true
-    existingClaim: <claim-name>
+    existingClaim: media-data
     globalMounts:
       - path: /data
 ```
 
-Or as a raw Pod volume:
+App *config* (Sonarr's DB, Jellyfin's library metadata, etc.) is separate — it's `hostPath` under `/var/lib/media-config/<app>`, pinned to node `g3`, not on the UNAS Pro. Only the media library itself goes through NFS.
+
+### Adding another app onto the existing media share
+
+No new StorageClass or PVC needed — just add the same block to the new app's Helm values, and keep it on node `g3` with `PUID`/`PGID` `977`/`988` so ownership matches the rest of the stack:
 
 ```yaml
-volumes:
-  - name: mydata
-    persistentVolumeClaim:
-      claimName: <claim-name>
+persistence:
+  media:
+    enabled: true
+    existingClaim: media-data
+    globalMounts:
+      - path: /data
 ```
+
+### Adding a separate UNAS Pro share (its own StorageClass + PVC)
+
+For a workload that shouldn't share `media-data` (different retention needs, different dataset), follow the same pattern with a new share:
+
+1. Export a new NFS share from the UNAS Pro (UniFi Drive) and note its path — it'll follow the same shape as the existing ones: `/volume/a9c17917-c5c5-436a-abcc-77081270b2b6/.srv/.unifi-drive/<share-name>/.data`.
+2. Add a StorageClass to `infrastructure/storage/storageclasses.yaml` copying the `nfs-cluster-media` block above, swapping `metadata.name` and `parameters.share`.
+3. Add a PVC copying `mediapvc.yaml`, pointed at the new StorageClass.
+4. Reference it from the app via `existingClaim`, as above.
 
 ### Troubleshooting
 
-- **PVC stuck `Pending`**: check `kubectl describe pvc <name>` and the `csi-nfs-node`/`csi-nfs-controller` pod logs — usually a bad `server`/`share` path or the UNAS Pro NFS export not allowing the node's IP.
-- **Mount denied / permission errors**: revisit the NFS export's allowed-network and squash settings on the UNAS Pro; container `PUID`/`PGID` need to line up with what the export permits.
-- **Slow or flaky I/O**: this NAS is on the LAN, not local disk — fine for media/config, but avoid it for latency-sensitive workloads (databases, etc.) unless tuned/tested for it.
+- **PVC stuck `Pending`**: `kubectl describe pvc <name>` and check the `csi-nfs-node`/`csi-nfs-controller` pod logs (`nfs.csi.k8s.io` driver) — usually a wrong `server`/`share`, or the UNAS Pro export not allowing the node's subnet.
+- **Permission denied on mount**: check the NFS export's allowed-network/squash settings on the UNAS Pro side, and confirm `PUID`/`PGID` (`977`/`988`) match what the export permits.
+- **New app can't see the existing library**: confirm it's mounting `media-data` (not a fresh PVC) at `/data` — the *arr apps rely on matching paths across containers for imports/hardlinks to work.
