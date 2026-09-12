@@ -4,3 +4,4 @@ resources:
   - sources/helmrepository-bjws.yaml
   - sources/helmrepository-portainer.yaml
   - portainer/helmrelease.yaml
+  - jellyfin/helmrelease.yaml
