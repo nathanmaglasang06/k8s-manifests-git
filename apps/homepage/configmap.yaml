@@ -7,7 +7,7 @@ data:
   settings.yaml: |
     title: Homelab
     theme: dark
-    color: indigo
+    color: neutral
     headerStyle: clean
     statusStyle: dot
 
