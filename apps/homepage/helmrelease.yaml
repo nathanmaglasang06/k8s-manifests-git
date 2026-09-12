@@ -26,6 +26,10 @@ spec:
             runAsUser: 977
             runAsGroup: 988
             fsGroup: 988
+          # Chart default is false — Homepage's Kubernetes widget needs the
+          # pod's own ServiceAccount token to authenticate to the API server
+          # (see rbac.yaml for the ClusterRole it uses).
+          automountServiceAccountToken: true
         # Homepage self-generates several files (kubernetes.yaml, cache,
         # logs/) directly inside its config dir at startup — it can't run
         # against a read-only ConfigMap mount there. So /app/config is a
