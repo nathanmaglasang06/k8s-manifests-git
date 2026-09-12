@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage-config
+  namespace: media
+data:
+  settings.yaml: |
+    title: Homelab
+    theme: dark
+    color: slate
+    headerStyle: clean
+
+  services.yaml: |
+    - Media:
+        - Jellyfin:
+            href: http://jellyfin.home.lab
+            description: Movies & TV streaming
+        - Navidrome:
+            href: http://navidrome.home.lab
+            description: Music streaming
+        - Immich:
+            href: http://immich.home.lab
+            description: Photo library
+
+    - Media Management:
+        - Radarr:
+            href: http://radarr.home.lab
+            description: Movie collection
+        - Sonarr:
+            href: http://sonarr.home.lab
+            description: TV collection
+        - Lidarr:
+            href: http://lidarr.home.lab
+            description: Music collection
+        - Prowlarr:
+            href: http://prowlarr.home.lab
+            description: Indexer management
+        - qBittorrent:
+            href: http://qbittorrent.home.lab
+            description: Downloads
+        - Beets:
+            href: http://beets.home.lab
+            description: Music tagging & organization
+
+    - Infrastructure:
+        - Portainer:
+            href: http://portainer.home.lab
+            description: Cluster visibility
+        - Grafana:
+            href: http://grafana.home.lab
+            description: Monitoring
+        - Bambuddy:
+            href: http://bambuddy.home.lab
+            description: 3D printer management
+
+  bookmarks.yaml: |
+    []
+
+  docker.yaml: |
+    {}

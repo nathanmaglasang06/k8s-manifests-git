@@ -1,0 +1,60 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: bambuddy
+  namespace: flux-system
+spec:
+  targetNamespace: media
+  releaseName: bambuddy
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: "5.0.1"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: ghcr.io/maziggy/bambuddy
+              tag: latest
+            env:
+              TZ: "Australia/Sydney"
+              PORT: "8000"
+            resources:
+              requests: { cpu: 100m, memory: 256Mi }
+              limits: { cpu: 1000m, memory: 1Gi }
+
+    service:
+      main:
+        ports:
+          main:
+            port: 8000
+
+    ingress:
+      main:
+        enabled: true
+        className: nginx
+        hosts:
+          - host: bambuddy.home.lab
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: main
+                  port: main
+
+    persistence:
+      data:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: nfs-cluster
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        globalMounts:
+          - path: /data

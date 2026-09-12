@@ -17,3 +17,6 @@ resources:
   - immich/helmrelease.yaml
   - lidarr/helmrelease.yaml
   - beets/helmrelease.yaml
+  - homepage/configmap.yaml
+  - homepage/helmrelease.yaml
+  - bambuddy/helmrelease.yaml
