@@ -8,3 +8,5 @@ resources:
   - syncthing/syncthing-namespace.yaml
   - sources/helmrepository-csi-driver-nfs.yaml
   - csi-driver-nfs/helmrelease.yaml
+  - sources/helmrepository-ingress-nginx.yaml
+  - ingress-nginx/helmrelease.yaml
