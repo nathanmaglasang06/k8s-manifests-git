@@ -5,3 +5,9 @@ resources:
   - sources/helmrepository-portainer.yaml
   - portainer/helmrelease.yaml
   - jellyfin/helmrelease.yaml
+  - radarr/helmrelease.yaml
+  - sonarr/helmrelease.yaml
+  - prowlarr/helmrelease.yaml
+  - qbittorrent/helmrelease.yaml
+  - flaresolverr/helmrelease.yaml
+  - splunk/helmrelease.yaml
