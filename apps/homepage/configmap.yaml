@@ -7,7 +7,7 @@ data:
   settings.yaml: |
     title: Homelab
     theme: dark
-    color: slate
+    color: indigo
     headerStyle: clean
     statusStyle: dot
 
@@ -95,6 +95,19 @@ data:
               url: https://192.168.0.5
               username: "{{HOMEPAGE_VAR_UNIFI_USERNAME}}"
               password: "{{HOMEPAGE_VAR_UNIFI_PASSWORD}}"
+        - Cluster Resources:
+            icon: kubernetes.png
+            description: Total cluster capacity
+            widget:
+              type: customapi
+              url: http://localhost:3000/api/widgets/kubernetes
+              mappings:
+                - field: cluster.cpu.total
+                  label: Total Cores
+                  format: number
+                - field: cluster.memory.total
+                  label: Total RAM
+                  format: bytes
 
   bookmarks.yaml: |
     []
