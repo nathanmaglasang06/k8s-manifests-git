@@ -26,6 +26,18 @@ apps/                                    Flux HelmReleases, one dir per app
 
 infrastructure/
   kustomization.yaml
+  sources/                              HelmRepository sources shared by the infra HelmReleases below
+    helmrepository-csi-driver-nfs.yaml
+    helmrepository-ingress-nginx.yaml
+    helmrepository-metallb.yaml
+    helmrepository-grafana.yaml         # shared by loki + promtail
+    helmrepository-prometheus-community.yaml
+  csi-driver-nfs/helmrelease.yaml
+  ingress-nginx/helmrelease.yaml
+  metallb/helmrelease.yaml
+  loki/helmrelease.yaml
+  promtail/helmrelease.yaml
+  kube-prometheus-stack/helmrelease.yaml
   monitoring/
     ingress.yaml                        MetalLB IPAddressPool + L2Advertisement
     app-ingress/grafana-ingress.yaml     Ingress for kube-prometheus-stack Grafana
@@ -36,12 +48,22 @@ infrastructure/
     syncthing-namespace.yaml            Namespace only, work in progress
 ```
 
-**This repo is the source of truth — Flux reconciles it automatically.** Push to `main` and Flux applies the change within `interval` (10m for Kustomizations, or immediately via `flux reconcile kustomization apps --with-source`). There's no more manual `kubectl apply`/`helm install` step for anything listed above.
+**This repo is the source of truth — Flux reconciles it automatically.** Push to `main` and Flux applies the change within `interval` (10m for Kustomizations, or immediately via `flux reconcile kustomization apps --with-source` / `infrastructure --with-source`). There's no more manual `kubectl apply`/`helm install` step for anything in this cluster — every Helm release (apps and core infra alike) is now a `HelmRelease` owned by `helm-controller`; `helm list -A` only shows them as an implementation detail, not something to run `helm upgrade` against directly.
 
 - Apps are Helm-deployed via `HelmRelease` resources (mostly the [bjw-s `app-template`](https://github.com/bjw-s-labs/helm-charts) chart, pinned to `5.0.1`), with the exact same values that were previously passed by hand.
-- Infra manifests (storage, MetalLB pool, Grafana ingress, syncthing namespace) are plain Kustomize resources under `infrastructure/`.
-- **Out of scope for now / still manual Helm installs, not tracked here**: `ingress-nginx`, `metallb` (the core install, not just the pool config), `csi-driver-nfs`, `kube-prometheus-stack`, `loki`, `promtail`. Bringing these under Flux is a good next step but needs its own values-discovery pass first.
-- Sops decryption (for future secrets) isn't wired up yet — the age private key isn't on the machine that bootstrapped this. Once it is: create the `sops-age` secret in `flux-system` and uncomment the `decryption` block noted in `clusters/homelab/*.yaml`.
+- Core infra (`ingress-nginx`, `metallb`, `csi-driver-nfs`, `kube-prometheus-stack`, `loki`, `promtail`) is also Flux-managed now, same adoption pattern — each `HelmRelease` pinned to the exact chart version that was already running, values copied verbatim from `helm get values` at migration time.
+- **`kube-prometheus-stack` secret handling**: the Grafana admin password is intentionally *not* in this repo, encrypted or otherwise. It's supplied via `HelmRelease.spec.valuesFrom` pointing at a `Secret` named `grafana-admin-values` in the `flux-system` namespace, created directly with `kubectl` (out of band, never committed). The chart still renders/owns its own `kube-prometheus-stack-grafana` admin secret exactly as before — don't switch this to `grafana.admin.existingSecret`, that makes Helm treat the existing secret as orphaned and delete it on upgrade (verified locally with `helm template` before finding the safe path).
+- **`kube-prometheus-stack` also disables helm-controller's post-install/upgrade wait** (`install.disableWait`/`upgrade.disableWait`). Grafana here has a pre-existing `CrashLoopBackOff` (unrelated to Flux, not fixed as part of this) that would otherwise make every reconcile time out waiting for it to become healthy — matches the original manual install, which never used `helm --wait` either.
+- Infra manifests (storage, MetalLB pool, Grafana ingress, syncthing namespace) are plain Kustomize resources, not Helm, under `infrastructure/`.
+- Sops decryption (for future secrets) isn't wired up yet — the age private key isn't on the machine that bootstrapped this. Once it is: create the `sops-age` secret in `flux-system` and uncomment the `decryption` block noted in `clusters/homelab/*.yaml`. Not needed for the Grafana password above — that's handled via a plain (unencrypted, out-of-band) Secret instead, since sops isn't available yet.
+
+## Known pre-existing issues (not caused by, or fixed by, the Flux migration)
+
+- Grafana (`kube-prometheus-stack-grafana`) is in `CrashLoopBackOff`.
+- Splunk is in a crash loop.
+- Several pods across the cluster (csi-nfs-controller, kube-state-metrics, node-exporter, loki-gateway) have unusually high restart counts.
+
+Worth a dedicated troubleshooting pass — flagged here so it doesn't get mistaken for something this migration broke.
 
 ## Dashboard
 
