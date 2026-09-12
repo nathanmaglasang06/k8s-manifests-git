@@ -12,55 +12,56 @@ data:
     statusStyle: dot
 
   services.yaml: |
-    - Media:
-        - Jellyfin:
-            href: http://jellyfin.home.lab
-            description: Movies & TV streaming
-            siteMonitor: http://jellyfin.home.lab
-        - Navidrome:
-            href: http://navidrome.home.lab
-            description: Music streaming
-            siteMonitor: http://navidrome.home.lab
-        - Immich:
-            href: http://immich.home.lab
-            description: Photo library
-            siteMonitor: http://immich.home.lab
+    - Quick Links:
+        - Media:
+            - Jellyfin:
+                href: http://jellyfin.home.lab
+                description: Movies & TV streaming
+                siteMonitor: http://jellyfin.home.lab
+            - Navidrome:
+                href: http://navidrome.home.lab
+                description: Music streaming
+                siteMonitor: http://navidrome.home.lab
+            - Immich:
+                href: http://immich.home.lab
+                description: Photo library
+                siteMonitor: http://immich.home.lab
 
-    - Media Management:
-        - Radarr:
-            href: http://radarr.home.lab
-            description: Movie collection
-            siteMonitor: http://radarr.home.lab
-        - Sonarr:
-            href: http://sonarr.home.lab
-            description: TV collection
-            siteMonitor: http://sonarr.home.lab
-        - Lidarr:
-            href: http://lidarr.home.lab
-            description: Music collection
-            siteMonitor: http://lidarr.home.lab
-        - Prowlarr:
-            href: http://prowlarr.home.lab
-            description: Indexer management
-            siteMonitor: http://prowlarr.home.lab
-        - Beets:
-            href: http://beets.home.lab
-            description: Music tagging & organization
-            siteMonitor: http://beets.home.lab
+        - Media Management:
+            - Radarr:
+                href: http://radarr.home.lab
+                description: Movie collection
+                siteMonitor: http://radarr.home.lab
+            - Sonarr:
+                href: http://sonarr.home.lab
+                description: TV collection
+                siteMonitor: http://sonarr.home.lab
+            - Lidarr:
+                href: http://lidarr.home.lab
+                description: Music collection
+                siteMonitor: http://lidarr.home.lab
+            - Prowlarr:
+                href: http://prowlarr.home.lab
+                description: Indexer management
+                siteMonitor: http://prowlarr.home.lab
+            - Beets:
+                href: http://beets.home.lab
+                description: Music tagging & organization
+                siteMonitor: http://beets.home.lab
 
-    - Infrastructure:
-        - Portainer:
-            href: http://portainer.home.lab
-            description: Cluster visibility
-            siteMonitor: http://portainer.home.lab
-        - Grafana:
-            href: http://grafana.home.lab
-            description: Monitoring
-            siteMonitor: http://grafana.home.lab
-        - Bambuddy:
-            href: http://bambuddy.home.lab
-            description: 3D printer management
-            siteMonitor: http://bambuddy.home.lab
+        - Infrastructure:
+            - Portainer:
+                href: http://portainer.home.lab
+                description: Cluster visibility
+                siteMonitor: http://portainer.home.lab
+            - Grafana:
+                href: http://grafana.home.lab
+                description: Monitoring
+                siteMonitor: http://grafana.home.lab
+            - Bambuddy:
+                href: http://bambuddy.home.lab
+                description: 3D printer management
+                siteMonitor: http://bambuddy.home.lab
 
     - Monitoring:
         - qBittorrent:
@@ -116,4 +117,16 @@ data:
     #information-widgets {
       order: 2;
       justify-content: center !important;
+    }
+    /* #footer has mt-auto by default, which shoves it (and everything
+       after it in the reordered flow) down against the bottom of the
+       viewport, leaving a big empty gap above. Put it last in the visual
+       order instead and drop the auto margin, then center the whole
+       content block in the page rather than anchoring it to the top. */
+    #footer {
+      order: 3;
+      margin-top: 0 !important;
+    }
+    #inner_wrapper > div.min-h-screen {
+      justify-content: center;
     }
