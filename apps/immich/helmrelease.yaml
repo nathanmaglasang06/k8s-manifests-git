@@ -62,6 +62,7 @@ spec:
       ingress:
         main:
           enabled: true
+          className: nginx
           annotations:
             nginx.ingress.kubernetes.io/proxy-body-size: "0"
           hosts:
