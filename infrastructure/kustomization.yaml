@@ -12,3 +12,5 @@ resources:
   - ingress-nginx/helmrelease.yaml
   - sources/helmrepository-metallb.yaml
   - metallb/helmrelease.yaml
+  - sources/helmrepository-grafana.yaml
+  - loki/helmrelease.yaml
