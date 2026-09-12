@@ -14,3 +14,4 @@ resources:
   - metallb/helmrelease.yaml
   - sources/helmrepository-grafana.yaml
   - loki/helmrelease.yaml
+  - promtail/helmrelease.yaml
