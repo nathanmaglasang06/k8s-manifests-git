@@ -9,51 +9,64 @@ data:
     theme: dark
     color: slate
     headerStyle: clean
+    statusStyle: dot
 
   services.yaml: |
     - Media:
         - Jellyfin:
             href: http://jellyfin.home.lab
             description: Movies & TV streaming
+            siteMonitor: http://jellyfin.home.lab
         - Navidrome:
             href: http://navidrome.home.lab
             description: Music streaming
+            siteMonitor: http://navidrome.home.lab
         - Immich:
             href: http://immich.home.lab
             description: Photo library
+            siteMonitor: http://immich.home.lab
 
     - Media Management:
         - Radarr:
             href: http://radarr.home.lab
             description: Movie collection
+            siteMonitor: http://radarr.home.lab
         - Sonarr:
             href: http://sonarr.home.lab
             description: TV collection
+            siteMonitor: http://sonarr.home.lab
         - Lidarr:
             href: http://lidarr.home.lab
             description: Music collection
+            siteMonitor: http://lidarr.home.lab
         - Prowlarr:
             href: http://prowlarr.home.lab
             description: Indexer management
+            siteMonitor: http://prowlarr.home.lab
         - Beets:
             href: http://beets.home.lab
             description: Music tagging & organization
+            siteMonitor: http://beets.home.lab
 
     - Infrastructure:
         - Portainer:
             href: http://portainer.home.lab
             description: Cluster visibility
+            siteMonitor: http://portainer.home.lab
         - Grafana:
             href: http://grafana.home.lab
             description: Monitoring
+            siteMonitor: http://grafana.home.lab
         - Bambuddy:
             href: http://bambuddy.home.lab
             description: 3D printer management
+            siteMonitor: http://bambuddy.home.lab
 
     - Monitoring:
         - qBittorrent:
             href: http://qbittorrent.home.lab
             description: Downloads
+            siteMonitor: http://qbittorrent.home.lab
             widget:
               type: qbittorrent
               url: http://qbittorrent.media.svc.cluster.local:8080
@@ -62,6 +75,7 @@ data:
         - UNAS Storage:
             href: https://192.168.0.5
             description: NAS storage
+            siteMonitor: https://192.168.0.5
             widget:
               type: unifi_drive
               url: https://192.168.0.5
@@ -90,3 +104,16 @@ data:
           cpu: true
           memory: true
           showLabel: true
+
+  custom.css: |
+    /* Move the top info-widgets row (Kubernetes cluster/node stats) below
+       the services/links area, and center it. #information-widgets and
+       #services are direct siblings in a flex-col container, so a plain
+       flex `order` swap is enough — no layout hacks needed. */
+    #services {
+      order: 1;
+    }
+    #information-widgets {
+      order: 2;
+      justify-content: center !important;
+    }

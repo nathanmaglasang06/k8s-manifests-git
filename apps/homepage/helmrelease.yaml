@@ -43,7 +43,7 @@ spec:
               tag: "1.36"
             command: ["sh", "-c"]
             args:
-              - "cp /seed/*.yaml /app/config/"
+              - "cp /seed/*.yaml /seed/*.css /app/config/ 2>/dev/null; true"
         containers:
           main:
             image:
