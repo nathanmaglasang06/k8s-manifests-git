@@ -27,6 +27,15 @@ spec:
   values:
     controllers:
       main:
+        pod:
+          # The postgres image's entrypoint tries to chown its data dir as
+          # root on first start; that fails over NFS (root_squash). Run
+          # directly as the image's postgres user (999:999) instead so no
+          # chown is needed — confirmed via `id postgres` in the image.
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            fsGroup: 999
         containers:
           main:
             image:
