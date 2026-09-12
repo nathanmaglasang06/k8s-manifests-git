@@ -55,3 +55,11 @@ spec:
         name: homepage-config
         globalMounts:
           - path: /app/config
+      # The ConfigMap mount above is read-only, but Homepage tries to mkdir
+      # a logs/ subdirectory inside /app/config on startup. Overlay a
+      # writable emptyDir at just that path so it doesn't crash.
+      logs:
+        enabled: true
+        type: emptyDir
+        globalMounts:
+          - path: /app/config/logs
