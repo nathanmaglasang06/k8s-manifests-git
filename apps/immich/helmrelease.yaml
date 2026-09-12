@@ -10,6 +10,17 @@ spec:
   dependsOn:
     - name: immich-postgres
       namespace: flux-system
+  # Postgres can take a little while to become reachable right after its own
+  # first reconcile; helm-controller's default post-install wait sometimes
+  # loses that race and reports the whole release as Stalled even though the
+  # server pod itself comes up fine moments later. Same fix as
+  # kube-prometheus-stack: don't gate reconciliation on the wait.
+  install:
+    disableWait: true
+    disableWaitForJobs: true
+  upgrade:
+    disableWait: true
+    disableWaitForJobs: true
   chart:
     spec:
       chart: immich
