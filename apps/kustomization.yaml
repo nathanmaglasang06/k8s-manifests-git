@@ -11,3 +11,7 @@ resources:
   - qbittorrent/helmrelease.yaml
   - flaresolverr/helmrelease.yaml
   - splunk/helmrelease.yaml
+  - navidrome/helmrelease.yaml
+  - sources/helmrepository-immich.yaml
+  - immich-postgres/helmrelease.yaml
+  - immich/helmrelease.yaml

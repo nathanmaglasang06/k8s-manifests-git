@@ -1,0 +1,68 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: navidrome
+  namespace: flux-system
+spec:
+  targetNamespace: media
+  releaseName: navidrome
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: "5.0.1"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: deluan/navidrome
+              tag: latest
+            env:
+              ND_MUSICFOLDER: /music
+              ND_DATAFOLDER: /data
+              TZ: "Australia/Sydney"
+            resources:
+              requests: { cpu: 250m, memory: 256Mi }
+              limits: { cpu: 1000m, memory: 1Gi }
+
+    service:
+      main:
+        ports:
+          main:
+            port: 4533
+
+    ingress:
+      main:
+        enabled: true
+        className: nginx
+        hosts:
+          - host: navidrome.home.lab
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: main
+                  port: main
+
+    persistence:
+      data:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: nfs-cluster
+        accessMode: ReadWriteOnce
+        size: 2Gi
+        globalMounts:
+          - path: /data
+      music:
+        enabled: true
+        existingClaim: media-data
+        globalMounts:
+          - path: /music
+            subPath: music
+            readOnly: true

@@ -1,0 +1,64 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: immich-postgres
+  namespace: flux-system
+spec:
+  targetNamespace: media
+  releaseName: immich-postgres
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: "5.0.1"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  # POSTGRES_PASSWORD is supplied here, not in spec.values, from a Secret
+  # created directly in-cluster (kubectl, flux-system namespace) — never
+  # committed to git. Same value is also referenced by apps/immich/helmrelease.yaml
+  # so both sides stay in sync automatically.
+  valuesFrom:
+    - kind: Secret
+      name: immich-db-credentials
+      valuesKey: password
+      targetPath: controllers.main.containers.main.env.POSTGRES_PASSWORD
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: ghcr.io/immich-app/postgres
+              tag: 14-vectorchord0.4.3-pgvectors0.2.0
+            env:
+              POSTGRES_USER: postgres
+              POSTGRES_DB: immich
+              POSTGRES_INITDB_ARGS: "--data-checksums"
+            resources:
+              requests: { cpu: 250m, memory: 512Mi }
+              limits: { cpu: 2000m, memory: 2Gi }
+
+    service:
+      main:
+        ports:
+          main:
+            port: 5432
+
+    persistence:
+      data:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: nfs-cluster
+        accessMode: ReadWriteOnce
+        size: 20Gi
+        globalMounts:
+          - path: /var/lib/postgresql/data
+      dshm:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 128Mi
+        globalMounts:
+          - path: /dev/shm

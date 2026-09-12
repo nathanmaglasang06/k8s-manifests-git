@@ -1,0 +1,70 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: immich
+  namespace: flux-system
+spec:
+  targetNamespace: media
+  releaseName: immich
+  interval: 30m
+  dependsOn:
+    - name: immich-postgres
+      namespace: flux-system
+  chart:
+    spec:
+      chart: immich
+      version: "0.12.0"
+      sourceRef:
+        kind: HelmRepository
+        name: immich
+        namespace: flux-system
+  # DB_PASSWORD supplied here, not in spec.values — same Secret/value as
+  # apps/immich-postgres/helmrelease.yaml, see that file's comment.
+  valuesFrom:
+    - kind: Secret
+      name: immich-db-credentials
+      valuesKey: password
+      targetPath: server.controllers.main.containers.main.env.DB_PASSWORD
+  values:
+    valkey:
+      enabled: true
+
+    server:
+      enabled: true
+      controllers:
+        main:
+          containers:
+            main:
+              env:
+                DB_HOSTNAME: immich-postgres
+                DB_PORT: "5432"
+                DB_USERNAME: postgres
+                DB_DATABASE_NAME: immich
+      # immich.persistence.library.existingClaim (below) is what the chart
+      # actually reads for the PVC name; subPath isn't passed through by the
+      # chart's own template, so it has to be set here directly instead.
+      persistence:
+        data:
+          globalMounts:
+            - path: /data
+              subPath: photos
+      ingress:
+        main:
+          enabled: true
+          annotations:
+            nginx.ingress.kubernetes.io/proxy-body-size: "0"
+          hosts:
+            - host: immich.home.lab
+              paths:
+                - path: /
+                  service:
+                    identifier: main
+
+    machine-learning:
+      enabled: false
+
+    immich:
+      persistence:
+        library:
+          existingClaim: media-data
+          subPath: photos
