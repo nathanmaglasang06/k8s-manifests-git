@@ -97,7 +97,8 @@ data:
               password: "{{HOMEPAGE_VAR_UNIFI_PASSWORD}}"
         - Cluster Resources:
             icon: kubernetes.png
-            description: Total cluster capacity
+            description: Total cluster capacity — click for CPU/storage graphs
+            href: http://grafana.home.lab/d/7d57716318ee0dddbac5a7f451fb7753/node-exporter-nodes
             widget:
               type: customapi
               url: http://localhost:3000/api/widgets/kubernetes
