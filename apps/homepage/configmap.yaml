@@ -72,6 +72,9 @@ data:
   docker.yaml: |
     {}
 
+  kubernetes.yaml: |
+    mode: cluster
+
   widgets.yaml: |
     - kubernetes:
         cluster:
