@@ -1,0 +1,46 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: flux-system
+spec:
+  targetNamespace: monitoring
+  releaseName: kube-prometheus-stack
+  interval: 30m
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      version: "87.19.2"
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: flux-system
+  # Grafana admin password is NOT set here — it's supplied at reconcile time from
+  # a Secret created directly in-cluster (kubectl, not committed to git):
+  #   monitoring/grafana-admin-values, key "values.yaml"
+  # This preserves the exact same rendered Secret the chart already manages
+  # (chart still owns/creates monitoring/kube-prometheus-stack-grafana itself —
+  # we deliberately did NOT switch to grafana.admin.existingSecret, since that
+  # makes Helm treat the existing secret as orphaned and delete it on upgrade).
+  valuesFrom:
+    - kind: Secret
+      name: grafana-admin-values
+      valuesKey: values.yaml
+  values:
+    prometheus:
+      prometheusSpec:
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            memory: 512Mi
+        retention: 15d
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 20Gi
+              storageClassName: nfs-cluster

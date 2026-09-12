@@ -15,3 +15,5 @@ resources:
   - sources/helmrepository-grafana.yaml
   - loki/helmrelease.yaml
   - promtail/helmrelease.yaml
+  - sources/helmrepository-prometheus-community.yaml
+  - kube-prometheus-stack/helmrelease.yaml
