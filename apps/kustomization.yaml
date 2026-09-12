@@ -16,3 +16,4 @@ resources:
   - immich-postgres/helmrelease.yaml
   - immich/helmrelease.yaml
   - lidarr/helmrelease.yaml
+  - beets/helmrelease.yaml

@@ -1,0 +1,73 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: beets
+  namespace: flux-system
+spec:
+  targetNamespace: media
+  releaseName: beets
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: "5.0.1"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: lscr.io/linuxserver/beets
+              tag: latest
+            env:
+              PUID: "977"
+              PGID: "988"
+              TZ: "Australia/Sydney"
+            resources:
+              requests: { cpu: 250m, memory: 256Mi }
+              limits: { cpu: 1500m, memory: 2Gi }
+
+    service:
+      main:
+        ports:
+          main:
+            port: 8337
+
+    ingress:
+      main:
+        enabled: true
+        className: nginx
+        hosts:
+          - host: beets.home.lab
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: main
+                  port: main
+
+    persistence:
+      config:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: nfs-cluster
+        accessMode: ReadWriteOnce
+        size: 2Gi
+        globalMounts:
+          - path: /config
+      music:
+        enabled: true
+        existingClaim: media-data
+        globalMounts:
+          - path: /music
+            subPath: music
+      downloads:
+        enabled: true
+        existingClaim: media-data
+        globalMounts:
+          - path: /downloads
+            subPath: torrents
