@@ -23,6 +23,8 @@ spec:
             image:
               repository: ghcr.io/gethomepage/homepage
               tag: latest
+            env:
+              HOMEPAGE_ALLOWED_HOSTS: "home.home.lab"
             resources:
               requests: { cpu: 100m, memory: 128Mi }
               limits: { cpu: 500m, memory: 512Mi }
