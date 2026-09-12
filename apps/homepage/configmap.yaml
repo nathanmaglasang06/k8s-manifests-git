@@ -64,24 +64,19 @@ data:
                 siteMonitor: http://bambuddy.home.lab
 
     - Monitoring:
+        # widget: blocks intentionally left off both tiles below until real
+        # credentials are provided — the unresolved {{HOMEPAGE_VAR_*}}
+        # placeholders were being sent as literal username/password every
+        # 30s, which got the source IP rate-limited/banned by both
+        # qBittorrent and UniFi. Re-add once the Secret is wired in.
         - qBittorrent:
             href: http://qbittorrent.home.lab
             description: Downloads
             siteMonitor: http://qbittorrent.home.lab
-            widget:
-              type: qbittorrent
-              url: http://qbittorrent.media.svc.cluster.local:8080
-              username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
-              password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
         - UNAS Storage:
             href: https://192.168.0.5
             description: NAS storage
             siteMonitor: https://192.168.0.5
-            widget:
-              type: unifi_drive
-              url: https://192.168.0.5
-              username: "{{HOMEPAGE_VAR_UNIFI_USERNAME}}"
-              password: "{{HOMEPAGE_VAR_UNIFI_PASSWORD}}"
 
   bookmarks.yaml: |
     []
