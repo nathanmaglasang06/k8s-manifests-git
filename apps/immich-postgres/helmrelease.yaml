@@ -29,13 +29,15 @@ spec:
       main:
         pod:
           # The postgres image's entrypoint tries to chown its data dir as
-          # root on first start; that fails over NFS (root_squash). Run
-          # directly as the image's postgres user (999:999) instead so no
-          # chown is needed — confirmed via `id postgres` in the image.
+          # root on first start; that fails over NFS (root_squash). Running
+          # as the image's own postgres UID (999) isn't enough either — this
+          # NFS export only grants write/ownership to 977:988 (same PUID/PGID
+          # the rest of this repo's apps already use against this NFS
+          # backend), so postgres has to run as that identity too, not 999.
           securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            fsGroup: 999
+            runAsUser: 977
+            runAsGroup: 988
+            fsGroup: 988
         containers:
           main:
             image:
