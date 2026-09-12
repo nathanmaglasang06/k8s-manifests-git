@@ -18,6 +18,28 @@ spec:
   values:
     controllers:
       main:
+        pod:
+          # Same NFS-write identity established for immich-postgres: this
+          # export only grants write access to 977:988, not root or the
+          # image's own default user.
+          securityContext:
+            runAsUser: 977
+            runAsGroup: 988
+            fsGroup: 988
+        # Homepage self-generates several files (kubernetes.yaml, cache,
+        # logs/) directly inside its config dir at startup — it can't run
+        # against a read-only ConfigMap mount there. So /app/config is a
+        # real writable PVC, and this init container seeds it from the
+        # git-managed ConfigMap on every start (overwriting our four
+        # managed files, leaving anything Homepage generates itself alone).
+        initContainers:
+          seed-config:
+            image:
+              repository: busybox
+              tag: "1.36"
+            command: ["sh", "-c"]
+            args:
+              - "cp /seed/*.yaml /config/"
         containers:
           main:
             image:
@@ -51,15 +73,17 @@ spec:
     persistence:
       config:
         enabled: true
-        type: configMap
-        name: homepage-config
+        type: persistentVolumeClaim
+        storageClass: nfs-cluster
+        accessMode: ReadWriteOnce
+        size: 1Gi
         globalMounts:
           - path: /app/config
-      # The ConfigMap mount above is read-only, but Homepage tries to mkdir
-      # a logs/ subdirectory inside /app/config on startup. Overlay a
-      # writable emptyDir at just that path so it doesn't crash.
-      logs:
+      seed:
         enabled: true
-        type: emptyDir
-        globalMounts:
-          - path: /app/config/logs
+        type: configMap
+        name: homepage-config
+        advancedMounts:
+          main:
+            seed-config:
+              - path: /seed
