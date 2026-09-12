@@ -15,3 +15,4 @@ resources:
   - sources/helmrepository-immich.yaml
   - immich-postgres/helmrelease.yaml
   - immich/helmrelease.yaml
+  - lidarr/helmrelease.yaml
