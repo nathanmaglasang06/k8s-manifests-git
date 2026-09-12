@@ -25,7 +25,7 @@ spec:
       hosts:
         - host: portainer.home.lab
           paths:
-            - "/"
+            - path: /
     persistence:
       enabled: true
       size: 2Gi
