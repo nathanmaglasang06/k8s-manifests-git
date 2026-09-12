@@ -1,20 +1,31 @@
 # k8s-manifests-git
 
-K8s config files for my Talos homelab cluster.
+K8s config files for my Talos homelab cluster — reconciled by [Flux](https://fluxcd.io/).
 
 ## Repo layout
 
 ```
-apps/                                   Helm values for app workloads (bjw-s app-template style)
-  flaresolverr-helm.yaml
-  jellyfin-values.yaml
-  prowlarr-helm.yaml
-  qbittorent-helm.yaml
-  radarr-helm.yaml
-  sonarr-helm.yaml
-  splunk-helm.yaml
+clusters/homelab/
+  flux-system/           Flux's own bootstrap manifests — generated, don't hand-edit
+  infrastructure.yaml    Flux Kustomization -> ./infrastructure
+  apps.yaml              Flux Kustomization -> ./apps (depends on infrastructure)
+
+apps/                                    Flux HelmReleases, one dir per app
+  sources/
+    helmrepository-bjws.yaml             HelmRepository: bjw-s app-template chart
+    helmrepository-portainer.yaml        HelmRepository: Portainer chart
+  portainer/helmrelease.yaml
+  jellyfin/helmrelease.yaml
+  radarr/helmrelease.yaml
+  sonarr/helmrelease.yaml
+  prowlarr/helmrelease.yaml
+  qbittorrent/helmrelease.yaml
+  flaresolverr/helmrelease.yaml
+  splunk/helmrelease.yaml
+  kustomization.yaml
 
 infrastructure/
+  kustomization.yaml
   monitoring/
     ingress.yaml                        MetalLB IPAddressPool + L2Advertisement
     app-ingress/grafana-ingress.yaml     Ingress for kube-prometheus-stack Grafana
@@ -25,7 +36,16 @@ infrastructure/
     syncthing-namespace.yaml            Namespace only, work in progress
 ```
 
-This repo is not wired to Flux/Argo — there's no `Kustomization`/`HelmRelease` reconciliation here. Manifests are applied manually (`kubectl apply -f ...`) and Helm values files are passed to `helm install/upgrade -f ...` against their respective charts (mostly the [bjw-s `app-template`](https://github.com/bjw-s-labs/helm-charts) chart, judging by the `controllers.main.pod/containers` shape).
+**This repo is the source of truth — Flux reconciles it automatically.** Push to `main` and Flux applies the change within `interval` (10m for Kustomizations, or immediately via `flux reconcile kustomization apps --with-source`). There's no more manual `kubectl apply`/`helm install` step for anything listed above.
+
+- Apps are Helm-deployed via `HelmRelease` resources (mostly the [bjw-s `app-template`](https://github.com/bjw-s-labs/helm-charts) chart, pinned to `5.0.1`), with the exact same values that were previously passed by hand.
+- Infra manifests (storage, MetalLB pool, Grafana ingress, syncthing namespace) are plain Kustomize resources under `infrastructure/`.
+- **Out of scope for now / still manual Helm installs, not tracked here**: `ingress-nginx`, `metallb` (the core install, not just the pool config), `csi-driver-nfs`, `kube-prometheus-stack`, `loki`, `promtail`. Bringing these under Flux is a good next step but needs its own values-discovery pass first.
+- Sops decryption (for future secrets) isn't wired up yet — the age private key isn't on the machine that bootstrapped this. Once it is: create the `sops-age` secret in `flux-system` and uncomment the `decryption` block noted in `clusters/homelab/*.yaml`.
+
+## Dashboard
+
+[Portainer](https://www.portainer.io/) is deployed (via Flux, `apps/portainer/helmrelease.yaml`) at `http://portainer.home.lab` for cluster visibility (pods/logs/events across all nodes) and emergency manual actions (exec, restart, edit YAML) — it is **not** the way changes get made day-to-day; that's still git commits to this repo.
 
 ## Cluster overview
 
@@ -81,8 +101,8 @@ The UNAS Pro (`192.168.0.5`) is already the cluster's NFS backend — `infrastru
 UNAS Pro (192.168.0.5), NFS export
   └─ StorageClass (nfs.csi.k8s.io provisioner)  →  infrastructure/storage/storageclasses.yaml
        └─ PersistentVolumeClaim (media-data)     →  infrastructure/storage/mediapvc.yaml
-            └─ existingClaim in app Helm values   →  apps/jellyfin-values.yaml, radarr-helm.yaml,
-                                                       sonarr-helm.yaml, qbittorent-helm.yaml
+            └─ existingClaim in app HelmRelease    →  apps/jellyfin/helmrelease.yaml, apps/radarr/helmrelease.yaml,
+                                                       apps/sonarr/helmrelease.yaml, apps/qbittorrent/helmrelease.yaml
 ```
 
 **1. StorageClasses** (`infrastructure/storage/storageclasses.yaml`) — both provisioned by `nfs.csi.k8s.io` against the same UNAS Pro server, different shares:
@@ -121,7 +141,7 @@ spec:
       storage: 4Ti   # NFS-backed, size is nominal not enforced
 ```
 
-**3. Apps consume it** by referencing the same `existingClaim` — this is what lets Jellyfin/Radarr/Sonarr/qBittorrent all see the same files for imports/hardlinks. From `apps/jellyfin-values.yaml` (identical block in `radarr-helm.yaml`, `sonarr-helm.yaml`, `qbittorent-helm.yaml`):
+**3. Apps consume it** by referencing the same `existingClaim` — this is what lets Jellyfin/Radarr/Sonarr/qBittorrent all see the same files for imports/hardlinks. From `apps/jellyfin/helmrelease.yaml`'s `spec.values` (identical block in `radarr/helmrelease.yaml`, `sonarr/helmrelease.yaml`, `qbittorrent/helmrelease.yaml`):
 
 ```yaml
 persistence:
@@ -136,7 +156,7 @@ App *config* (Sonarr's DB, Jellyfin's library metadata, etc.) is separate — it
 
 ### Adding another app onto the existing media share
 
-No new StorageClass or PVC needed — just add the same block to the new app's Helm values, and keep it on node `g3` with `PUID`/`PGID` `977`/`988` so ownership matches the rest of the stack:
+No new StorageClass or PVC needed — just add the same block to the new app's `HelmRelease` `spec.values`, and keep it on node `g3` with `PUID`/`PGID` `977`/`988` so ownership matches the rest of the stack:
 
 ```yaml
 persistence:
