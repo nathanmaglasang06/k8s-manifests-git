@@ -7,6 +7,17 @@ spec:
   targetNamespace: monitoring
   releaseName: kube-prometheus-stack
   interval: 30m
+  # The original manual install never used `helm --wait`, and Grafana here is
+  # already in a pre-existing CrashLoopBackOff (unrelated to this migration,
+  # not being fixed here). Without disabling the wait, helm-controller blocks
+  # on that Deployment forever and reports the release as Stalled. Matching
+  # the original no-wait behavior instead of introducing a new health gate.
+  install:
+    disableWait: true
+    disableWaitForJobs: true
+  upgrade:
+    disableWait: true
+    disableWaitForJobs: true
   chart:
     spec:
       chart: kube-prometheus-stack
