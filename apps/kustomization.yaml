@@ -10,7 +10,6 @@ resources:
   - prowlarr/helmrelease.yaml
   - qbittorrent/helmrelease.yaml
   - flaresolverr/helmrelease.yaml
-  - splunk/helmrelease.yaml
   - navidrome/helmrelease.yaml
   - sources/helmrepository-immich.yaml
   - immich-postgres/helmrelease.yaml
@@ -18,5 +17,6 @@ resources:
   - lidarr/helmrelease.yaml
   - beets/helmrelease.yaml
   - homepage/configmap.yaml
+  - homepage/rbac.yaml
   - homepage/helmrelease.yaml
   - bambuddy/helmrelease.yaml

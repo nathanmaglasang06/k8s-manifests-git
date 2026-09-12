@@ -38,6 +38,11 @@ data:
         - qBittorrent:
             href: http://qbittorrent.home.lab
             description: Downloads
+            widget:
+              type: qbittorrent
+              url: http://qbittorrent.media.svc.cluster.local:8080
+              username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
+              password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
         - Beets:
             href: http://beets.home.lab
             description: Music tagging & organization
@@ -52,9 +57,30 @@ data:
         - Bambuddy:
             href: http://bambuddy.home.lab
             description: 3D printer management
+        - UNAS Storage:
+            href: https://192.168.0.5
+            description: NAS storage
+            widget:
+              type: unifi_drive
+              url: https://192.168.0.5
+              username: "{{HOMEPAGE_VAR_UNIFI_USERNAME}}"
+              password: "{{HOMEPAGE_VAR_UNIFI_PASSWORD}}"
 
   bookmarks.yaml: |
     []
 
   docker.yaml: |
     {}
+
+  widgets.yaml: |
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
