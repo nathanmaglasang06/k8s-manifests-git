@@ -15,56 +15,68 @@ data:
     - Quick Links:
         - Media:
             - Jellyfin:
+                icon: jellyfin.png
                 href: http://jellyfin.home.lab
                 description: Movies & TV streaming
                 siteMonitor: http://jellyfin.home.lab
             - Navidrome:
+                icon: navidrome.png
                 href: http://navidrome.home.lab
                 description: Music streaming
                 siteMonitor: http://navidrome.home.lab
             - Immich:
+                icon: immich.png
                 href: http://immich.home.lab
                 description: Photo library
                 siteMonitor: http://immich.home.lab
 
         - Media Management:
             - Radarr:
+                icon: radarr.png
                 href: http://radarr.home.lab
                 description: Movie collection
                 siteMonitor: http://radarr.home.lab
             - Sonarr:
+                icon: sonarr.png
                 href: http://sonarr.home.lab
                 description: TV collection
                 siteMonitor: http://sonarr.home.lab
             - Lidarr:
+                icon: lidarr.png
                 href: http://lidarr.home.lab
                 description: Music collection
                 siteMonitor: http://lidarr.home.lab
             - Prowlarr:
+                icon: prowlarr.png
                 href: http://prowlarr.home.lab
                 description: Indexer management
                 siteMonitor: http://prowlarr.home.lab
             - Beets:
+                icon: beets.png
                 href: http://beets.home.lab
                 description: Music tagging & organization
                 siteMonitor: http://beets.home.lab
 
         - Infrastructure:
             - Portainer:
+                icon: portainer.png
                 href: http://portainer.home.lab
                 description: Cluster visibility
                 siteMonitor: http://portainer.home.lab
             - Grafana:
+                icon: grafana.png
                 href: http://grafana.home.lab
                 description: Monitoring
                 siteMonitor: http://grafana.home.lab
             - Bambuddy:
+                icon: bambu-lab.png
                 href: http://bambuddy.home.lab
                 description: 3D printer management
                 siteMonitor: http://bambuddy.home.lab
 
     - Monitoring:
         - qBittorrent:
+            icon: qbittorrent.png
             href: http://qbittorrent.home.lab
             description: Downloads
             siteMonitor: http://qbittorrent.home.lab
@@ -74,6 +86,7 @@ data:
               username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
               password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
         - UNAS Storage:
+            icon: unifi.png
             href: https://192.168.0.5
             description: NAS storage
             siteMonitor: https://192.168.0.5
