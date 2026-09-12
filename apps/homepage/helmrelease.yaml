@@ -35,6 +35,14 @@ spec:
       name: homepage-widget-credentials
       valuesKey: unifi-password
       targetPath: controllers.main.containers.main.env.HOMEPAGE_VAR_UNIFI_PASSWORD
+    - kind: Secret
+      name: homepage-widget-credentials
+      valuesKey: jellyfin-api-key
+      targetPath: controllers.main.containers.main.env.HOMEPAGE_VAR_JELLYFIN_API_KEY
+    - kind: Secret
+      name: homepage-widget-credentials
+      valuesKey: immich-api-key
+      targetPath: controllers.main.containers.main.env.HOMEPAGE_VAR_IMMICH_API_KEY
   values:
     controllers:
       main:

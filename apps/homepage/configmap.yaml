@@ -109,19 +109,26 @@ data:
                 - field: cluster.memory.total
                   label: Total RAM
                   format: bytes
-        # widget: blocks intentionally left off both tiles below until API
-        # keys exist — same reason as the earlier qBittorrent/UNAS pause:
-        # avoid hitting the real service repeatedly with a placeholder key.
-        # Jellyfin: Admin Dashboard -> Advanced -> API Keys.
-        # Immich: Account Settings -> API Keys (needs server.statistics permission).
         - Jellyfin Library:
             icon: jellyfin.png
             href: http://jellyfin.home.lab
             description: Library counts
+            widget:
+              type: jellyfin
+              url: http://jellyfin.media.svc.cluster.local:8096
+              key: "{{HOMEPAGE_VAR_JELLYFIN_API_KEY}}"
+              enableBlocks: true
+              enableNowPlaying: false
+              enableMediaControl: false
         - Immich Stats:
             icon: immich.png
             href: http://immich.home.lab
             description: Photo/video counts & storage
+            widget:
+              type: immich
+              url: http://immich-server.media.svc.cluster.local:2283
+              key: "{{HOMEPAGE_VAR_IMMICH_API_KEY}}"
+              version: 2
 
   bookmarks.yaml: |
     []
