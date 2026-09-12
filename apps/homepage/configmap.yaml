@@ -35,14 +35,6 @@ data:
         - Prowlarr:
             href: http://prowlarr.home.lab
             description: Indexer management
-        - qBittorrent:
-            href: http://qbittorrent.home.lab
-            description: Downloads
-            widget:
-              type: qbittorrent
-              url: http://qbittorrent.media.svc.cluster.local:8080
-              username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
-              password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
         - Beets:
             href: http://beets.home.lab
             description: Music tagging & organization
@@ -57,6 +49,16 @@ data:
         - Bambuddy:
             href: http://bambuddy.home.lab
             description: 3D printer management
+
+    - Monitoring:
+        - qBittorrent:
+            href: http://qbittorrent.home.lab
+            description: Downloads
+            widget:
+              type: qbittorrent
+              url: http://qbittorrent.media.svc.cluster.local:8080
+              username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
+              password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
         - UNAS Storage:
             href: https://192.168.0.5
             description: NAS storage
@@ -82,6 +84,7 @@ data:
           cpu: true
           memory: true
           showLabel: true
+          label: "Cluster Total"
         nodes:
           show: true
           cpu: true
