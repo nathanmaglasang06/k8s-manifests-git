@@ -10,3 +10,5 @@ resources:
   - csi-driver-nfs/helmrelease.yaml
   - sources/helmrepository-ingress-nginx.yaml
   - ingress-nginx/helmrelease.yaml
+  - sources/helmrepository-metallb.yaml
+  - metallb/helmrelease.yaml
