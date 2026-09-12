@@ -134,26 +134,16 @@ data:
           showLabel: true
 
   custom.css: |
-    /* Move the top info-widgets row (Kubernetes cluster/node stats) below
-       the services/links area, and center it. #information-widgets and
-       #services are direct siblings in a flex-col container, so a plain
-       flex `order` swap is enough — no layout hacks needed. */
-    #services {
-      order: 1;
-    }
+    /* Back to default DOM order: info-widgets (Kubernetes cluster/node
+       stats) at the top, services below, footer naturally last via its
+       own mt-auto — no order overrides needed once we're not fighting
+       the default flow.
+       Scale the whole widget row up for legibility. transform doesn't
+       change layout box size, so pad below it to avoid overlapping the
+       services grid that follows. */
     #information-widgets {
-      order: 2;
       justify-content: center !important;
-    }
-    /* #footer has mt-auto by default, which shoves it (and everything
-       after it in the reordered flow) down against the bottom of the
-       viewport, leaving a big empty gap above. Put it last in the visual
-       order instead and drop the auto margin, then center the whole
-       content block in the page rather than anchoring it to the top. */
-    #footer {
-      order: 3;
-      margin-top: 0 !important;
-    }
-    #inner_wrapper > div.min-h-screen {
-      justify-content: center;
+      transform: scale(1.4);
+      transform-origin: top center;
+      margin-bottom: 48px;
     }
