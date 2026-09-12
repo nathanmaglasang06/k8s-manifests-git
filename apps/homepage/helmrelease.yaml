@@ -15,6 +15,26 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
+  # qBittorrent/UniFi widget credentials, created directly in-cluster
+  # (kubectl, flux-system namespace) — never committed to git. These map
+  # to the {{HOMEPAGE_VAR_*}} placeholders in services.yaml.
+  valuesFrom:
+    - kind: Secret
+      name: homepage-widget-credentials
+      valuesKey: qbittorrent-username
+      targetPath: controllers.main.containers.main.env.HOMEPAGE_VAR_QBITTORRENT_USERNAME
+    - kind: Secret
+      name: homepage-widget-credentials
+      valuesKey: qbittorrent-password
+      targetPath: controllers.main.containers.main.env.HOMEPAGE_VAR_QBITTORRENT_PASSWORD
+    - kind: Secret
+      name: homepage-widget-credentials
+      valuesKey: unifi-username
+      targetPath: controllers.main.containers.main.env.HOMEPAGE_VAR_UNIFI_USERNAME
+    - kind: Secret
+      name: homepage-widget-credentials
+      valuesKey: unifi-password
+      targetPath: controllers.main.containers.main.env.HOMEPAGE_VAR_UNIFI_PASSWORD
   values:
     controllers:
       main:
