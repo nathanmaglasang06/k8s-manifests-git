@@ -154,16 +154,8 @@ data:
           showLabel: true
 
   custom.css: |
-    /* Back to default DOM order: info-widgets (Kubernetes cluster/node
-       stats) at the top, services below, footer naturally last via its
-       own mt-auto — no order overrides needed once we're not fighting
-       the default flow.
-       Scale the whole widget row up for legibility. transform doesn't
-       change layout box size, so pad below it to avoid overlapping the
-       services grid that follows. */
+    /* Default DOM order: info-widgets (Kubernetes cluster/node stats) at
+       the top, services below, footer naturally last via its own mt-auto. */
     #information-widgets {
       justify-content: center !important;
-      transform: scale(1.4);
-      transform-origin: top center;
-      margin-bottom: 48px;
     }
