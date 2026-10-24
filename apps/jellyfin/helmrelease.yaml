@@ -30,6 +30,8 @@ spec:
               PUID: "977"
               PGID: "988"
               TZ: "Australia/Sydney"
+              # Intel OpenCL runtime, used for HDR -> SDR tonemapping on the GPU
+              DOCKER_MODS: "linuxserver/mods:jellyfin-opencl-intel"
             # Needed to open /dev/dri for Intel QuickSync. No device plugin here
             # (the Intel operator needs cert-manager), so privileged it is.
             securityContext:
