@@ -30,9 +30,13 @@ spec:
               PUID: "977"
               PGID: "988"
               TZ: "Australia/Sydney"
+            # Needed to open /dev/dri for Intel QuickSync. No device plugin here
+            # (the Intel operator needs cert-manager), so privileged it is.
+            securityContext:
+              privileged: true
             resources:
               requests: { cpu: 2000m, memory: 3Gi }
-              limits: { cpu: 4000m, memory: 6Gi }
+              limits: { cpu: 6000m, memory: 6Gi }
 
     service:
       main:
@@ -60,6 +64,13 @@ spec:
         hostPath: /var/lib/media-config/jellyfin
         globalMounts:
           - path: /config
+      # Intel UHD 630 iGPU — needs the siderolabs/i915 Talos extension on the node
+      dri:
+        enabled: true
+        type: hostPath
+        hostPath: /dev/dri
+        globalMounts:
+          - path: /dev/dri
       media:
         enabled: true
         existingClaim: media-data
