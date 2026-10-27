@@ -50,6 +50,33 @@ spec:
       main:
         enabled: true
         className: nginx
+        annotations:
+          # Forces server-side transcoding (never direct play/stream) for the
+          # "tv" user only, by rewriting the PlaybackInfo request body before
+          # it reaches Jellyfin. The Samsung Tizen app has no such toggle itself:
+          # https://github.com/jellyfin/jellyfin-webos/issues/293
+          nginx.ingress.kubernetes.io/configuration-snippet: |
+            access_by_lua_block {
+              if ngx.req.get_method() == "POST" and string.match(ngx.var.uri, "^/Items/[^/]+/PlaybackInfo$") then
+                ngx.req.read_body()
+                local body = ngx.req.get_body_data()
+                if body then
+                  local cjson = require "cjson.safe"
+                  local data = cjson.decode(body)
+                  if data then
+                    local uid = string.lower(string.gsub(tostring(data.UserId or data.userId or ""), "-", ""))
+                    if uid == "d1bdf7051b6045da9d0b213dc7ccf197" then
+                      data.EnableDirectPlay = false
+                      data.EnableDirectStream = false
+                      data.AllowVideoStreamCopy = false
+                      data.AllowAudioStreamCopy = false
+                      data.EnableTranscoding = true
+                      ngx.req.set_body_data(cjson.encode(data))
+                    end
+                  end
+                end
+              end
+            }
         hosts:
           - host: jellyfin.home.lab
             paths:

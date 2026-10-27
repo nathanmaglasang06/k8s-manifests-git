@@ -17,5 +17,6 @@ spec:
         namespace: flux-system
   values:
     controller:
+      allowSnippetAnnotations: true
       service:
         type: LoadBalancer
