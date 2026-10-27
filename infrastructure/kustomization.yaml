@@ -5,7 +5,6 @@ resources:
   - storage/mediapvc.yaml
   - monitoring/ingress.yaml
   - monitoring/app-ingress/grafana-ingress.yaml
-  - syncthing/syncthing-namespace.yaml
   - sources/helmrepository-csi-driver-nfs.yaml
   - csi-driver-nfs/helmrelease.yaml
   - sources/helmrepository-ingress-nginx.yaml
