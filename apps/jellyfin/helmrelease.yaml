@@ -62,6 +62,11 @@ spec:
                 local body = ngx.req.get_body_data()
                 if body then
                   local cjson = require "cjson.safe"
+                  -- Without this, cjson re-encodes any empty JSON array in the
+                  -- client's DeviceProfile (e.g. SubtitleProfiles: []) as {}
+                  -- instead of [], which Jellyfin's .NET binder then rejects
+                  -- with a 400 on every single playback request.
+                  cjson.encode_empty_table_as_object(false)
                   local data = cjson.decode(body)
                   if data then
                     local uid = string.lower(string.gsub(tostring(data.UserId or data.userId or ""), "-", ""))
