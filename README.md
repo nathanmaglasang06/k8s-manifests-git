@@ -22,6 +22,7 @@ apps/                                    Flux HelmReleases, one dir per app
   qbittorrent/helmrelease.yaml
   flaresolverr/helmrelease.yaml
   splunk/helmrelease.yaml
+  todo/helmrelease.yaml                todo-tui sync server (todo.home.lab)
   kustomization.yaml
 
 infrastructure/

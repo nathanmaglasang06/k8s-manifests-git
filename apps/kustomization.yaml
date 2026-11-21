@@ -20,3 +20,4 @@ resources:
   - homepage/rbac.yaml
   - homepage/helmrelease.yaml
   - bambuddy/helmrelease.yaml
+  - todo/helmrelease.yaml

@@ -1,0 +1,96 @@
+# todo-tui sync server (github.com/nathanmaglasang06/todo-tui).
+# Single replica by design: state lives in memory + /data/state.json, so
+# Recreate ensures two pods never write at once. Devices keep a full local
+# copy, so a pod restart only means a few seconds of "offline" in the TUI.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: todo
+  namespace: flux-system
+spec:
+  targetNamespace: todo
+  releaseName: todo
+  interval: 30m
+  install:
+    createNamespace: true
+  chart:
+    spec:
+      chart: app-template
+      version: "5.0.1"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        strategy: Recreate
+        pod:
+          securityContext:
+            # Matches the owner of the NFS share, so writes work whether or
+            # not the NAS squashes client users.
+            runAsUser: 977
+            runAsGroup: 988
+            runAsNonRoot: true
+            seccompProfile: { type: RuntimeDefault }
+        containers:
+          main:
+            image:
+              repository: ghcr.io/nathanmaglasang06/todo-tui
+              tag: latest
+              pullPolicy: Always
+            env:
+              TZ: "Australia/Sydney"
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet: { path: /healthz, port: 8080 }
+                  periodSeconds: 20
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet: { path: /healthz, port: 8080 }
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests: { cpu: 10m, memory: 32Mi }
+              limits: { cpu: 200m, memory: 128Mi }
+
+    service:
+      main:
+        controller: main
+        ports:
+          main:
+            port: 8080
+
+    ingress:
+      main:
+        enabled: true
+        className: nginx
+        annotations:
+          nginx.ingress.kubernetes.io/proxy-body-size: 10m
+        hosts:
+          - host: todo.home.lab
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: main
+                  port: main
+
+    persistence:
+      data:
+        enabled: true
+        type: persistentVolumeClaim
+        # Retain class: deleting the app never deletes the todo data.
+        storageClass: nfs-cluster-backups
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+          - path: /data
