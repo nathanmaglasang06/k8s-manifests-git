@@ -18,6 +18,12 @@ spec:
   values:
     controllers:
       main:
+        # Never let two pods open the SQLite DB at once
+        strategy: Recreate
+        pod:
+          # /data is a hostPath on this node (SQLite on NFS hung repeatedly)
+          nodeSelector:
+            kubernetes.io/hostname: g4
         containers:
           main:
             image:
@@ -51,12 +57,13 @@ spec:
                   port: main
 
     persistence:
+      # Node-local: SQLite over NFS (nolock) hangs in nfs_iocounter_wait.
+      # Not on the NAS: g4 EPHEMERAL (/var/lib — /var/mnt is read-only to kubelet on Talos).
       data:
         enabled: true
-        type: persistentVolumeClaim
-        storageClass: nfs-cluster
-        accessMode: ReadWriteOnce
-        size: 2Gi
+        type: hostPath
+        hostPath: /var/lib/navidrome
+        hostPathType: DirectoryOrCreate
         globalMounts:
           - path: /data
       music:
