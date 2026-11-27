@@ -35,7 +35,8 @@ spec:
               TZ: "Australia/Sydney"
               # Metadata/artwork agents, tried in order. apple-music and
               # coverartarchive are .ndp plugins in /data/plugins (hostPath on g4).
-              ND_AGENTS: "apple-music,coverartarchive,deezer,lastfm,listenbrainz"
+              # audiomuseai (sonic similarity, Instant Mix/Radio) must be first.
+              ND_AGENTS: "audiomuseai,apple-music,coverartarchive,deezer,lastfm,listenbrainz"
             resources:
               requests: { cpu: 250m, memory: 256Mi }
               limits: { cpu: 1000m, memory: 1Gi }
