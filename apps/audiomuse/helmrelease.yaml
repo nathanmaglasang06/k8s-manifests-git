@@ -1,0 +1,71 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: audiomuse
+  namespace: flux-system
+spec:
+  targetNamespace: media
+  releaseName: audiomuse
+  interval: 30m
+  chart:
+    spec:
+      chart: audiomuse-ai
+      version: "1.1.6"
+      sourceRef:
+        kind: HelmRepository
+        name: audiomuse-ai
+        namespace: flux-system
+  # Media server (Navidrome) URL/credentials and app auth are configured in the
+  # AudioMuse setup wizard (stored in its DB), not here.
+  #
+  # Postgres credentials are NOT in git — create the Secret in-cluster:
+  #   kubectl -n media create secret generic audiomuse-postgres-credentials \
+  #     --from-literal=POSTGRES_USER=audiomuse \
+  #     --from-literal=POSTGRES_PASSWORD="$(openssl rand -hex 24)" \
+  #     --from-literal=POSTGRES_DB=audiomusedb
+  values:
+    fullnameOverride: audiomuse
+    timezone: "Australia/Sydney"
+
+    image:
+      tag: "3.7.4"
+      pullPolicy: IfNotPresent
+
+    flask:
+      service:
+        type: ClusterIP
+      resources:
+        requests: { cpu: 100m, memory: 512Mi }
+        limits: { cpu: "2", memory: 2Gi }
+
+    worker:
+      # Audio analysis (one-off for the whole library, then new tracks only)
+      resources:
+        requests: { cpu: 500m, memory: 1Gi }
+        limits: { cpu: "4", memory: 6Gi }
+
+    redis:
+      resources:
+        requests: { cpu: 50m, memory: 64Mi }
+        limits: { cpu: 500m, memory: 512Mi }
+
+    postgres:
+      existingSecret: audiomuse-postgres-credentials
+      nodeSelector:
+        kubernetes.io/hostname: g4
+      persistence:
+        enabled: true
+        size: 5Gi
+        storageClassName: local-g4   # bound to the static PV in storage.yaml
+      resources:
+        requests: { cpu: 100m, memory: 256Mi }
+        limits: { cpu: "1", memory: 2Gi }
+
+    ingress:
+      enabled: true
+      className: nginx
+      hosts:
+        - host: audiomuse.home.lab
+          paths:
+            - path: /
+              pathType: Prefix

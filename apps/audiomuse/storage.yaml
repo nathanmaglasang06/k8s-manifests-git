@@ -1,0 +1,28 @@
+# Node-local Postgres storage for AudioMuse-AI (static PV, no provisioner).
+# Lives on g4's EPHEMERAL partition — not on the NAS. /var/mnt is read-only
+# to kubelet on Talos, so use /var/lib.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: audiomuse-postgres-g4
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-g4
+  claimRef:
+    namespace: media
+    name: audiomuse-postgres-pvc
+  hostPath:
+    path: /var/lib/audiomuse-postgres
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - g4

@@ -21,3 +21,6 @@ resources:
   - homepage/helmrelease.yaml
   - bambuddy/helmrelease.yaml
   - todo/helmrelease.yaml
+  - sources/helmrepository-audiomuse.yaml
+  - audiomuse/storage.yaml
+  - audiomuse/helmrelease.yaml

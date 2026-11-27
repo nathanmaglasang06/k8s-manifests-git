@@ -1,0 +1,8 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: audiomuse-ai
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://neptunehub.github.io/AudioMuse-AI-helm
